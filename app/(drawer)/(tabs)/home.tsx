@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 
@@ -10,8 +11,8 @@ const HomeScreen = () => {
         <View style={styles.walletSection}>
           <Text style={styles.walletLabel}>Wallet Balance</Text>
           <Text style={styles.walletAmount}>₹ 0.00</Text>
-          <TouchableOpacity style={styles.walletButton}>
-            <Text style={styles.walletButtonText}>Add Money/Voucher</Text>
+          <TouchableOpacity style={styles.walletButton} onPress={() => router.push('/(drawer)/(tabs)/cerateTransaction')}>
+            <Text style={styles.walletButtonText}>Add Money</Text>
           </TouchableOpacity>
         </View>
 
