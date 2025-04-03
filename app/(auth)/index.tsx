@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import LoginScreen from './login';
 import RegisterScreen from './register';
@@ -8,7 +8,8 @@ const IndexScreen = () => {
   const [activeTab, setActiveTab] = useState('login');
 
   return (
-    <View style={styles.container}>
+    <ScrollView>
+      <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../../assets/images/favicon.png')} style={styles.icon} />
         <Text style={styles.title}>Mahakaal Gas Agency</Text>
@@ -34,6 +35,7 @@ const IndexScreen = () => {
         {activeTab === 'register' ? <RegisterScreen /> : <LoginScreen />}
       </View>
     </View>
+    </ScrollView>
   );
 };
 

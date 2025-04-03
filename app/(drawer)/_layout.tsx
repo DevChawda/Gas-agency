@@ -3,17 +3,25 @@ import { Drawer } from 'expo-router/drawer';
 import { Image, SafeAreaView, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { DrawerItemList } from '@react-navigation/drawer';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Layout() {
-  const router = useRouter();  // ✅ Initialize router at the top
+  const router = useRouter();  
 
-  const handleLogout = () => {
+  // ✅ Logout function: Clears AsyncStorage and redirects to login
+  const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
       { 
         text: "Logout",
-        onPress: () => {
-          router.replace('/(auth)'); // ✅ Navigates to index.tsx (login)
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("user");
+            router.replace('/(auth)'); // ✅ Navigates to Login screen
+          } catch (error) {
+            console.error("Error during logout:", error);
+          }
         },
       },
     ]);
@@ -33,15 +41,29 @@ export default function Layout() {
         }}
         drawerContent={(props) => (
           <SafeAreaView style={{ flex: 1 }}>
+            {/* 🔹 User Info Section */}
             <View style={{ height: 200, justifyContent: "center", alignItems: "center", backgroundColor: "#192f6a", paddingBottom: 12 }}>
               <Image source={require('../../assets/images/icons/User.png')} resizeMode="contain" style={{ height: 130, width: 130, borderRadius: 999 }} />
               <Text style={{ fontSize: 22, color: "white", fontWeight: "bold", marginVertical: 8 }}>User</Text>
               <Text style={{ fontSize: 16, color: "white" }}>User Professional</Text>
             </View>
+
+            {/* 🔹 Drawer Items */}
             <DrawerItemList {...props} />
+
+            {/* 🔹 Logout Button */}
             <View style={{ flex: 1, justifyContent: 'flex-end' }}>
               <TouchableOpacity
-                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 15, paddingHorizontal: 20, backgroundColor: "#E53935", marginHorizontal: 20, borderRadius: 10, marginVertical: 10 }}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center", 
+                  paddingVertical: 15, 
+                  paddingHorizontal: 20, 
+                  backgroundColor: "#E53935", 
+                  marginHorizontal: 20, 
+                  borderRadius: 10, 
+                  marginVertical: 10 
+                }}
                 onPress={handleLogout}
               >
                 <Image source={require('../../assets/images/icons/logout.png')} resizeMode="contain" style={{ width: 24, height: 24, tintColor: "white" }} />
@@ -51,6 +73,7 @@ export default function Layout() {
           </SafeAreaView>
         )}
       >
+        {/* 🔹 Drawer Screens */}
         <Drawer.Screen name="(tabs)" options={{ drawerLabel: "Home", drawerIcon: () => <Image source={require('../../assets/images/icons/Home.png')} resizeMode="contain" style={{ width: 24, height: 24, tintColor: "white" }} /> }} />
         <Drawer.Screen name="index" options={{ drawerLabel: "Profile", drawerIcon: () => <Image source={require('../../assets/images/icons/User.png')} resizeMode="contain" style={{ width: 24, height: 24, tintColor: "white" }} /> }} />
         <Drawer.Screen name="about" options={{ drawerLabel: "About", drawerIcon: () => <Image source={require('../../assets/images/icons/Info.png')} resizeMode="contain" style={{ width: 24, height: 24, tintColor: "white" }} /> }} />
@@ -60,4 +83,3 @@ export default function Layout() {
     </GestureHandlerRootView>
   );
 }
-

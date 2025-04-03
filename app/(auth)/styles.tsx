@@ -6,6 +6,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F5E6E8', 
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    height: 800,
   },
   header: {
     alignItems: 'center',
@@ -61,12 +63,13 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   input: {
-    borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
     padding: 10,
-    marginBottom: 15,
     color: '#333',
+    marginVertical: 10,
+    width: 250,
+    alignItems : 'center',
   },
   submitButton: {
     backgroundColor: '#EB4343',
@@ -88,5 +91,25 @@ export const styles = StyleSheet.create({
     color: '#EB4343',
     fontSize: 12,
     marginBottom: 10,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent : 'space-between',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  icons: {
+    marginRight: 10,
   },
 });

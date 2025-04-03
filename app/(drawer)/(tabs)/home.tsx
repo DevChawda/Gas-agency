@@ -1,10 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-const user = { name: 'John Doe' };
-
-// ✅ Define valid routes and enforce strict typing with `as const`
 const routes = {
   createTransaction: "/(drawer)/(tabs)/createTransactions",
   redeemCoins: "/(drawer)/(tabs)/redeemCoins",
@@ -18,7 +16,35 @@ const routes = {
 
 const HomeScreen = () => {
   const router = useRouter();
-  const { name } = useLocalSearchParams(); 
+  const [name, setName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          setName(user.fullName);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // ✅ Show loading screen while fetching data
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -80,6 +106,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 16,
     justifyContent: "space-evenly",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     fontSize: 24,

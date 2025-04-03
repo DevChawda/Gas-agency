@@ -1,27 +1,30 @@
-import { Link, useRouter } from 'expo-router';
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import axios from 'axios';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from './styles';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Define the form data structure
+// ✅ Define the form structure
 interface LoginForm {
-  name: string;
-  email: string;
+  fullName: string;
+  contact: string;
   password: string;
 }
 
-// Validation Schema using Yup
+// ✅ Validation Schema using Yup
 const loginSchema = yup.object().shape({
-  name: yup.string().required("Full Name is required"),
-  email: yup
+  fullName: yup
     .string()
-    .matches(
-      /^(?:\d{10}|\S+@\S+\.\S+)$/,
-      "Enter a valid Email or 10-digit Phone number"
-    )
+    .matches(/^[A-Za-z\s]+$/, "Full Name must contain only letters")
+    .required("Full Name is required"),
+  contact: yup
+    .string()
+    .matches(/^(?:\d{10}|\S+@\S+\.\S+)$/, "Enter a valid Email or 10-digit Phone number")
     .required("Email or Phone number is required"),
   password: yup
     .string()
@@ -32,38 +35,60 @@ const loginSchema = yup.object().shape({
     .required("Password is required"),
 });
 
-
 const LoginScreen = () => {
   const router = useRouter();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false); // Show loading state during API call
 
-  // React Hook Form Setup
+  // ✅ React Hook Form Setup
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<LoginForm>({
     resolver: yupResolver(loginSchema),
     mode: "onChange",
   });
 
-  const handleLogin = (data: LoginForm) => {
-    console.log("Login Data:", data);
+  // ✅ On Form Submit (Login)
+  const handleLogin = async (data: LoginForm) => {
+    setLoading(true);
 
-    // Navigate to Home screen with user's name
-    router.replace({
-      pathname: "/(drawer)/(tabs)/home",
-      params: { name: data.name },
-    });
+    try {
+      const response = await axios.post("http://192.168.1.12:5000/api/users/login", data);
+
+      if (response.status === 200) {
+        const { token, user } = response.data;
+
+        // ✅ Store token and user info in AsyncStorage
+        await AsyncStorage.setItem("token", token);
+        await AsyncStorage.setItem("user", JSON.stringify(user));
+
+        Alert.alert("Success", "Login Successful!");
+
+        // ✅ Navigate to Home screen with user details
+        router.replace({
+          pathname: "/(drawer)/(tabs)/home",
+          params: { name: user.fullName },
+        });
+      }
+    } catch (error: any) {
+      console.error("Login Error:", error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data?.message || "Login failed. Try again!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={styles.formContainer}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
       {/* Full Name Input */}
       <Controller
         control={control}
-        name="name"
+        name="fullName"
         render={({ field: { onChange, onBlur, value } }) => (
-          <View>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="account" size={20} color="#666" style={styles.icons} />
             <TextInput
               style={styles.input}
               placeholder="Full Name"
@@ -72,20 +97,21 @@ const LoginScreen = () => {
               onChangeText={onChange}
               value={value}
             />
-            {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
           </View>
         )}
       />
+      {errors.fullName && <Text style={styles.errorText}>{errors.fullName.message}</Text>}
 
-      {/* Email / Phone Number Input */}
+      {/* Contact (Email or Phone) Input */}
       <Controller
         control={control}
-        name="email"
+        name="contact"
         render={({ field: { onChange, onBlur, value } }) => (
-          <View>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="email" size={20} color="#666" style={styles.icons} />
             <TextInput
               style={styles.input}
-              placeholder="Email / Phone no."
+              placeholder="Email or Phone Number"
               placeholderTextColor="#999"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -93,45 +119,48 @@ const LoginScreen = () => {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
           </View>
         )}
       />
+      {errors.contact && <Text style={styles.errorText}>{errors.contact.message}</Text>}
 
       {/* Password Input */}
       <Controller
         control={control}
         name="password"
         render={({ field: { onChange, onBlur, value } }) => (
-          <View>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="lock" size={20} color="#666" style={styles.icons} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { flex: 1 }]}
               placeholder="Password"
               placeholderTextColor="#999"
-              secureTextEntry
+              secureTextEntry={!isPasswordVisible}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
             />
-            {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+              <MaterialCommunityIcons
+                name={isPasswordVisible ? "eye-off" : "eye"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
           </View>
         )}
       />
+      {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
       {/* Submit Button */}
       <TouchableOpacity
-        style={[styles.submitButton, !isValid && { backgroundColor: "#ccc" }]}
+        style={[styles.submitButton, loading && { backgroundColor: "#ccc" }]}
         onPress={handleSubmit(handleLogin)}
-        disabled={!isValid}
+        disabled={loading}
       >
-        <Text style={styles.submitButtonText}>Submit</Text>
+        <Text style={styles.submitButtonText}>{loading ? "Logging in..." : "Submit"}</Text>
       </TouchableOpacity>
-
-      {/* Forgot Password */}
-      <TouchableOpacity>
-        <Link style={styles.forgotPassword} href={"/(auth)/forgot"}>Forgot Password</Link>
-      </TouchableOpacity>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
