@@ -1,91 +1,66 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, Image, StyleSheet } from 'react-native'
+import React from 'react'
+import { ScrollView } from 'react-native-gesture-handler'
+import { Link } from 'expo-router'
 
-const ProfileScreen = () => {
-  const router = useRouter();
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "johndoe@example.com",
-    phone: "+1234567890",
-    avatar: "https://via.placeholder.com/100", // Placeholder image
-  });
-
-  const handleEditProfile = () => {
-    router.push("/(drawer)/edit-profile"); // Navigate to edit profile page
-  };
-
-  const handleLogout = () => {
-    // Perform logout logic here
-    alert("Logged out successfully!");
-    router.replace("/"); // Navigate to login screen after logout
-  };
-
+const Profile = () => {
   return (
-    <View style={styles.container}>
-      {/* Profile Picture */}
-      <Image source={{ uri: user.avatar }} style={styles.avatar} />
+    <ScrollView style={styles.container}>
+      <View style={styles.ProfileContainer}>
+        <Image source={require("../../assets/images/icons/User.png")} />
+        <Link href="./edit-profile">
+          <Text style={styles.editProfileText}>Edit Profile</Text>
+        </Link>
+      </View>
 
-      {/* User Details */}
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.email}>{user.email}</Text>
-      <Text style={styles.phone}>{user.phone}</Text>
-
-      {/* Buttons */}
-      <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
-        <Text style={styles.buttonText}>Edit Profile</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+      <View style={styles.ProfileContainer}>
+        <View style={styles.readContainer}>
+          <Text style={styles.readLabel}>Name :</Text>
+          <Text style={styles.readLabel}>Name xyz</Text>
+        </View>
+        <View style={styles.readContainer}>
+          <Text style={styles.readLabel}>Phone Number :</Text>
+          <Text style={styles.readLabel}>9988557744</Text>
+        </View>
+        <View style={styles.readContainer}>
+          <Text style={styles.readLabel}>Email Address :</Text>
+          <Text style={styles.readLabel}>xyz@gmail.com</Text>
+        </View>
+      </View>
+    </ScrollView>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    width : '100%',
+    height : '100%',
+    backgroundColor: '#f0f0f0',
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
+  ProfileContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
   },
-  name: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 5,
+  readContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 20,
   },
-  email: {
-    fontSize: 16,
-    color: "gray",
-    marginBottom: 2,
+  readLabel: {
+    fontSize: 20,
+    color: '#000',
   },
-  phone: {
-    fontSize: 16,
-    color: "gray",
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#007bff",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
+  editProfileText: {
+    fontSize: 18,
+    color: '#007bff', // Blue color for a link-like style
     marginTop: 10,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  logoutButton: {
-    backgroundColor: "#dc3545",
-  },
-});
+})
 
-export default ProfileScreen;
+export default Profile

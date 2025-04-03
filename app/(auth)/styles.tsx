@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: '100%',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -83,5 +83,10 @@ export const styles = StyleSheet.create({
     color: '#EB4343',
     textAlign: 'center',
     marginTop: 10,
+  },
+  errorText:{
+    color: '#EB4343',
+    fontSize: 12,
+    marginBottom: 10,
   },
 });

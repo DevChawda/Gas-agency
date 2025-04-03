@@ -1,53 +1,45 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const ContactUsScreen = () => {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Contact US</Text>
-
+      <Text style={styles.header}>Contact Us</Text>
+      
       <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tab}>
+        <TouchableOpacity style={styles.tab} onPress={() => router.push('/faq')}>
           <Text style={styles.tabText}>FAQs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
+        <TouchableOpacity style={styles.tab} onPress={() => router.push('/feedback')}>
           <Text style={styles.tabText}>Feedback ▼</Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.instruction}>Choose a service you need help with</Text>
-
-      <TouchableOpacity style={styles.listItem}>
-        <Text style={styles.listItemText}>Mahakal Gas Petrol Pumps</Text>
-        <Text style={styles.arrow}>{'>'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.listItem}>
-        <Text style={styles.listItemText}>Mahakal Gas Gas</Text>
-        <Text style={styles.arrow}>{'>'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.listItem}>
-        <Text style={styles.listItemText}>Mahakal Gas Lubes</Text>
-        <Text style={styles.arrow}>{'>'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.listItem}>
-        <Text style={styles.listItemText}>KYC</Text>
-        <Text style={styles.arrow}>{'>'}</Text>
-      </TouchableOpacity>
+      
+      {['Mahakal Gas Petrol Pumps', 'Mahakal Gas Gas', 'Mahakal Gas Lubes', 'KYC'].map((item, index) => (
+        <TouchableOpacity key={index} style={styles.listItem} onPress={() => router.push('/help')}>
+          <Text style={styles.listItemText}>{item}</Text>
+          <Text style={styles.arrow}>{'>'}</Text>
+        </TouchableOpacity>
+      ))}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, styles.leftButton]}>
+        <TouchableOpacity style={[styles.button, styles.leftButton]} onPress={() => router.push('/business-inquiry')}>
           <Text style={styles.buttonText}>Business Enquiry</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.rightButton]}>
+        <TouchableOpacity style={[styles.button, styles.rightButton]} onPress={() => router.push('/view-tickets')}>
           <Text style={styles.buttonText}>View Tickets</Text>
         </TouchableOpacity>
       </View>
-
+      
       <View style={styles.footer}>
-        <Text style={styles.footerText}>LPG Emergency Helpline - 1906</Text>
+        <TouchableOpacity onPress={() => Linking.openURL('tel:1906')}>
+          <Text style={styles.footerText}>LPG Emergency Helpline - 1906</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -109,10 +101,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   leftButton: {
-    backgroundColor: '#e60000',
+    backgroundColor: '#E53935',
   },
   rightButton: {
-    backgroundColor: '#e60000',
+    backgroundColor: '#E53935',
   },
   buttonText: {
     color: '#fff',
@@ -125,6 +117,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
+    color: '#e60000',
   },
 });
 

@@ -50,7 +50,7 @@ const TransactionScreen = () => {
       {/* New Transaction Button */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.navigate('/(drawer)/(tabs)/cerateTransaction')} // Correct type navigation
+        onPress={() => router.navigate('/(drawer)/(tabs)/createTransactions')} // Correct type navigation
       >
         <Text style={styles.buttonText}>Create New Transaction</Text>
       </TouchableOpacity>
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   button: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#E53935',
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 20,

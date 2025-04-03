@@ -8,8 +8,10 @@ import {
   Alert, 
   KeyboardAvoidingView, 
   Platform, 
-  ScrollView 
+  ScrollView, 
+  Image 
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 
 const EditProfileScreen: React.FC = () => {
@@ -22,6 +24,22 @@ const EditProfileScreen: React.FC = () => {
     phone: "+1234567890",
   });
 
+  const [image, setImage] = useState<string | null>(null);
+
+  // Handle Profile Picture Selection
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   const handleSaveChanges = () => {
     Alert.alert("Profile Updated", "Your profile details have been successfully updated!");
     router.back(); // Navigate back to Profile Screen
@@ -33,10 +51,21 @@ const EditProfileScreen: React.FC = () => {
       style={styles.container}
     >
       <ScrollView 
-        contentContainerStyle={styles.scrollView} // ✅ Correctly applied here
-        keyboardShouldPersistTaps="handled" // Allows tapping outside inputs to dismiss keyboard
+        contentContainerStyle={styles.scrollView} 
+        keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.header}>Edit Profile</Text>
+
+        {/* Profile Image Section */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={image ? { uri: image } : require("../../assets/images/icons/User.png")} 
+            style={styles.profileImage}
+          />
+          <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+            <Text style={styles.imageButtonText}>Change Profile Picture</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Name Input */}
         <View style={styles.inputContainer}>
@@ -105,6 +134,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  imageContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "#ddd",
+  },
+  imageButton: {
+    marginTop: 10,
+    backgroundColor: "#007bff",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+  },
+  imageButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
   inputContainer: {
     width: "100%",
     marginBottom: 15,
@@ -123,7 +175,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#E53935",
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,
