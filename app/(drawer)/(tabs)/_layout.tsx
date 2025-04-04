@@ -73,7 +73,7 @@ const TabsRoot = () => {
       <Tabs.Screen name="my-hp" options={{ href: null }} />
       <Tabs.Screen name="my-vehicle" options={{ href: null }} />
       <Tabs.Screen name="redeemCoins" options={{ href: null }} />
-      <Tabs.Screen name="createTransactions" options={{ href: null }} />
+      <Tabs.Screen name="createTransaction" options={{ href: null }} />
     </Tabs>
     
   );

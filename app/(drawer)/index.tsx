@@ -1,66 +1,106 @@
-import { View, Text, Image, StyleSheet } from 'react-native'
-import React from 'react'
-import { ScrollView } from 'react-native-gesture-handler'
-import { Link } from 'expo-router'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { Pencil } from 'lucide-react-native'; // Make sure to install lucide-react-native
 
 const Profile = () => {
+  const [user, setUser] = useState<{ fullName: string; mobile: string; email: string } | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (userData) {
+          setUser(JSON.parse(userData));
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.ProfileContainer}>
-        <Image source={require("../../assets/images/icons/User.png")} />
-        <Link href="./edit-profile">
-          <Text style={styles.editProfileText}>Edit Profile</Text>
-        </Link>
+      <View style={styles.profileHeader}>
+        <Image
+          source={require('../../assets/images/User.jpg')}
+          style={styles.profileImage}
+        />
+        <TouchableOpacity style={styles.editIconWrapper} onPress={() => router.push('/(drawer)/edit-profile')}>
+          <Pencil color="#007bff" size={24} />
+          <Text style={styles.editText}>Edit</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.ProfileContainer}>
-        <View style={styles.readContainer}>
-          <Text style={styles.readLabel}>Name :</Text>
-          <Text style={styles.readLabel}>Name xyz</Text>
+      <View style={styles.profileDetails}>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Name:</Text>
+          <Text style={styles.value}>{user?.fullName || 'Loading...'}</Text>
         </View>
-        <View style={styles.readContainer}>
-          <Text style={styles.readLabel}>Phone Number :</Text>
-          <Text style={styles.readLabel}>9988557744</Text>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Phone Number:</Text>
+          <Text style={styles.value}>{user?.mobile || 'Loading...'}</Text>
         </View>
-        <View style={styles.readContainer}>
-          <Text style={styles.readLabel}>Email Address :</Text>
-          <Text style={styles.readLabel}>xyz@gmail.com</Text>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Email Address:</Text>
+          <Text style={styles.value}>{user?.email || 'Loading...'}</Text>
         </View>
       </View>
     </ScrollView>
-  )
-}
+  );
+};
+
+export default Profile;
+
 
 const styles = StyleSheet.create({
   container: {
-    width : '100%',
-    height : '100%',
+    width: '100%',
+    height: '100%',
     backgroundColor: '#f0f0f0',
   },
-  ProfileContainer: {
-    width: '100%',
-    flexDirection: 'column',
+  profileHeader: {
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
-  readContainer: {
-    width: '100%',
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  editIconWrapper: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    marginTop: 8,
+    gap: 6,
+  },
+  editText: {
+    fontSize: 16,
+    color: '#007bff',
+  },
+  profileDetails: {
+    marginTop: 20,
     paddingHorizontal: 20,
   },
-  readLabel: {
-    fontSize: 20,
-    color: '#000',
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
-  editProfileText: {
+  label: {
     fontSize: 18,
-    color: '#007bff', // Blue color for a link-like style
-    marginTop: 10,
+    fontWeight: '500',
   },
-})
+  value: {
+    fontSize: 18,
+    color: '#333',
+  },
+});
 
-export default Profile

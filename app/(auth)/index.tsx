@@ -1,12 +1,20 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LoginScreen from './login';
 import RegisterScreen from './register';
 import { styles } from './styles';
+import { useLocalSearchParams } from 'expo-router';
+
 
 const IndexScreen = () => {
+  const { tab } = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState('login');
 
+  useEffect(() => {
+    if (tab == 'register') {
+      setActiveTab('register');
+    }
+  }, [tab]);
   return (
     <ScrollView>
       <View style={styles.container}>

@@ -1,6 +1,9 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { 
+  View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, 
+  Platform, Alert, ActivityIndicator 
+} from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import * as yup from 'yup';
@@ -9,10 +12,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from './styles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// ✅ Define the form structure
+// ✅ Define form structure
 interface LoginForm {
   fullName: string;
-  contact: string;
   password: string;
 }
 
@@ -22,10 +24,6 @@ const loginSchema = yup.object().shape({
     .string()
     .matches(/^[A-Za-z\s]+$/, "Full Name must contain only letters")
     .required("Full Name is required"),
-  contact: yup
-    .string()
-    .matches(/^(?:\d{10}|\S+@\S+\.\S+)$/, "Enter a valid Email or 10-digit Phone number")
-    .required("Email or Phone number is required"),
   password: yup
     .string()
     .matches(
@@ -38,7 +36,7 @@ const loginSchema = yup.object().shape({
 const LoginScreen = () => {
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [loading, setLoading] = useState(false); // Show loading state during API call
+  const [loading, setLoading] = useState(false);
 
   // ✅ React Hook Form Setup
   const {
@@ -60,17 +58,26 @@ const LoginScreen = () => {
       if (response.status === 200) {
         const { token, user } = response.data;
 
+        if (!user.email || !user.mobile) {
+          Alert.alert("Error", "User data is incomplete.");
+          return;
+        }
+
         // ✅ Store token and user info in AsyncStorage
         await AsyncStorage.setItem("token", token);
-        await AsyncStorage.setItem("user", JSON.stringify(user));
+        await AsyncStorage.setItem(
+          "user",
+          JSON.stringify({
+            fullName: user.fullName,
+            email: user.email,
+            mobile: user.mobile,
+          })
+        );
 
         Alert.alert("Success", "Login Successful!");
 
-        // ✅ Navigate to Home screen with user details
-        router.replace({
-          pathname: "/(drawer)/(tabs)/home",
-          params: { name: user.fullName },
-        });
+        // ✅ Navigate to Home screen
+        router.replace("/(drawer)/(tabs)/home");
       }
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
@@ -82,6 +89,9 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
+      
+      <Text style={styles.title}>Login</Text>
+
       {/* Full Name Input */}
       <Controller
         control={control}
@@ -96,33 +106,12 @@ const LoginScreen = () => {
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              autoCapitalize="words"
             />
           </View>
         )}
       />
       {errors.fullName && <Text style={styles.errorText}>{errors.fullName.message}</Text>}
-
-      {/* Contact (Email or Phone) Input */}
-      <Controller
-        control={control}
-        name="contact"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="email" size={20} color="#666" style={styles.icons} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email or Phone Number"
-              placeholderTextColor="#999"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-        )}
-      />
-      {errors.contact && <Text style={styles.errorText}>{errors.contact.message}</Text>}
 
       {/* Password Input */}
       <Controller
@@ -158,8 +147,20 @@ const LoginScreen = () => {
         onPress={handleSubmit(handleLogin)}
         disabled={loading}
       >
-        <Text style={styles.submitButtonText}>{loading ? "Logging in..." : "Submit"}</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Login</Text>
+        )}
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push("/(auth)/forgot")}>
+        <Text style={styles.registerText}>Forgot Password?</Text>
+      </TouchableOpacity>
+      {/* Register Link */}
+      <TouchableOpacity onPress={() => router.replace('/(auth)?tab=register')}>
+        <Text style={styles.registerText}>Don't have an account? Register here</Text>
+      </TouchableOpacity>
+      
     </KeyboardAvoidingView>
   );
 };

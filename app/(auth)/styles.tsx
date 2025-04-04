@@ -112,4 +112,11 @@ export const styles = StyleSheet.create({
   icons: {
     marginRight: 10,
   },
+  registerText: {
+    marginTop: 15,
+    color: "#EB4343",
+    fontSize: 16,
+    textAlign: "center",
+    fontWeight: "500",
+  },
 });
