@@ -1,167 +1,117 @@
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, 
-  Platform, Alert, ActivityIndicator 
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import axios from 'axios';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { styles } from './styles';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-// ✅ Define form structure
-interface LoginForm {
-  fullName: string;
-  password: string;
-}
-
-// ✅ Validation Schema using Yup
-const loginSchema = yup.object().shape({
-  fullName: yup
-    .string()
-    .matches(/^[A-Za-z\s]+$/, "Full Name must contain only letters")
-    .required("Full Name is required"),
-  password: yup
-    .string()
-    .matches(
-      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must be at least 8 characters, include uppercase, lowercase, number, and special character"
-    )
-    .required("Password is required"),
-});
+import axios from "axios";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Linking,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { styles } from "./styles";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const LoginScreen = () => {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ React Hook Form Setup
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: yupResolver(loginSchema),
-    mode: "onChange",
-  });
-
-  // ✅ On Form Submit (Login)
-  const handleLogin = async (data: LoginForm) => {
-    setLoading(true);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Validation Error", "Please fill in both fields.");
+      return;
+    }
 
     try {
-      const response = await axios.post("http://192.168.1.12:5000/api/users/login", data);
+      setLoading(true);
 
-      if (response.status === 200) {
-        const { token, user } = response.data;
+      // 👇 Detect which API to call based on email
+      const isAdmin = email.includes("admin"); // or use a separate switch
+      const loginUrl = isAdmin
+        ? "http://192.168.1.29:5000/api/admin/login"
+        : "http://192.168.1.29:5000/api/users/login";
 
-        if (!user.email || !user.mobile) {
-          Alert.alert("Error", "User data is incomplete.");
-          return;
-        }
+      console.log("➡️ Logging in to:", loginUrl); // Log the API URL
 
-        // ✅ Store token and user info in AsyncStorage
-        await AsyncStorage.setItem("token", token);
-        await AsyncStorage.setItem(
-          "user",
-          JSON.stringify({
-            fullName: user.fullName,
-            email: user.email,
-            mobile: user.mobile,
-          })
-        );
+      const response = await axios.post(loginUrl, {
+        email,
+        password,
+      });
 
-        Alert.alert("Success", "Login Successful!");
+      console.log("✅ Login Response:", response.data); // Log the entire response data
 
-        // ✅ Navigate to Home screen
-        router.replace("/(drawer)/(tabs)/home");
+      const { token, user } = response.data;
+      console.log("✅ Logged in user:", user);
+
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+
+      if (user?.role === "admin") { // Added optional chaining for safety
+        const adminPanelURL = "http://192.168.1.29:3000";
+        console.log("🌐 Opening Admin Panel URL:", adminPanelURL);
+        Linking.openURL(adminPanelURL);
+      } else {
+        console.log("📱 Navigating to user drawer.");
+        router.replace("/(drawer)");
       }
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
-      Alert.alert("Error", error.response?.data?.message || "Login failed. Try again!");
+      Alert.alert("Login Failed", error.response?.data?.message || "Invalid credentials.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
-      
-      <Text style={styles.title}>Login</Text>
+    <View style={styles.formContainer}>
+      {/* Email */}
+      <View style={styles.inputContainer}>
+        <MaterialCommunityIcons name="email" size={20} color="#666" style={styles.icons} />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          onChangeText={setEmail}
+          value={email}
+        />
+      </View>
 
-      {/* Full Name Input */}
-      <Controller
-        control={control}
-        name="fullName"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="account" size={20} color="#666" style={styles.icons} />
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              placeholderTextColor="#999"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              autoCapitalize="words"
-            />
-          </View>
-        )}
-      />
-      {errors.fullName && <Text style={styles.errorText}>{errors.fullName.message}</Text>}
-
-      {/* Password Input */}
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="lock" size={20} color="#666" style={styles.icons} />
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              placeholder="Password"
-              placeholderTextColor="#999"
-              secureTextEntry={!isPasswordVisible}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
-            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
-              <MaterialCommunityIcons
-                name={isPasswordVisible ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-      {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+      {/* Password */}
+      <View style={styles.inputContainer}>
+        <MaterialCommunityIcons name="lock" size={20} color="#666" style={styles.icons} />
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Password"
+          placeholderTextColor="#999"
+          secureTextEntry={!isPasswordVisible}
+          onChangeText={setPassword}
+          value={password}
+        />
+        <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+          <MaterialCommunityIcons
+            name={isPasswordVisible ? "eye-off" : "eye"}
+            size={24}
+            color="#666"
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* Submit Button */}
-      <TouchableOpacity
-        style={[styles.submitButton, loading && { backgroundColor: "#ccc" }]}
-        onPress={handleSubmit(handleLogin)}
-        disabled={loading}
-      >
+      <TouchableOpacity style={styles.submitButton} onPress={handleLogin} disabled={loading}>
         {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="small" color="#FFF" />
         ) : (
           <Text style={styles.submitButtonText}>Login</Text>
         )}
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push("/(auth)/forgot")}>
-        <Text style={styles.registerText}>Forgot Password?</Text>
-      </TouchableOpacity>
-      {/* Register Link */}
-      <TouchableOpacity onPress={() => router.replace('/(auth)?tab=register')}>
-        <Text style={styles.registerText}>Don't have an account? Register here</Text>
-      </TouchableOpacity>
-      
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

@@ -27,13 +27,13 @@ export default function Layout() {
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-useEffect(() => {
-  const loadImage = async () => {
-    const image = await AsyncStorage.getItem("profileImage");
-    if (image) setProfileImage(image);
-  };
-  loadImage();
-}, []);
+  useEffect(() => {
+    const loadImage = async () => {
+      const image = await AsyncStorage.getItem("profileImage");
+      if (image) setProfileImage(image);
+    };
+    loadImage();
+  }, []);
 
   // ✅ Logout function
   const handleLogout = async () => {
@@ -166,6 +166,19 @@ useEffect(() => {
                 resizeMode="contain"
               />
             )
+          }}
+        />
+        <Drawer.Screen
+          name="bookingEnquiry"
+          options={{
+            drawerLabel: "Booking Enquiry",
+            drawerIcon: () => (
+              <Image
+                source={require('../../assets/images/icons/booking.png')} // Make sure this icon exists
+                style={{ width: 24, height: 24, tintColor: 'white' }}
+                resizeMode="contain"
+              />
+            ),
           }}
         />
 

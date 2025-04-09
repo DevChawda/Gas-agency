@@ -1,5 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
@@ -14,13 +21,18 @@ interface Transaction {
 
 const TransactionScreen = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchTransactions = async () => {
     try {
+      setRefreshing(true);
       const res = await api.get('/transactions');
       setTransactions(res.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      Alert.alert('Error', 'Failed to fetch transactions. Please try again.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -33,7 +45,19 @@ const TransactionScreen = () => {
     }
   };
 
-  // ✅ Fetch again every time the screen comes into focus
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'success':
+        return 'green';
+      case 'pending':
+        return 'orange';
+      case 'failed':
+        return 'red';
+      default:
+        return 'black';
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchTransactions();
@@ -44,27 +68,38 @@ const TransactionScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Transaction History</Text>
 
-      <SwipeListView
-        data={transactions}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.transactionCard}>
-            <Text>Date: {item.date}</Text>
-            <Text>Amount: ₹{item.amount}</Text>
-            <Text>Status: {item.status}</Text>
-          </View>
-        )}
-        renderHiddenItem={({ item }) => (
-          <View style={styles.rowBack}>
-            <TouchableOpacity onPress={() => deleteTransaction(item._id)} style={styles.deleteButton}>
-              <Text style={{ color: 'white' }}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        rightOpenValue={-75}
-      />
+      {transactions.length === 0 ? (
+        <Text style={styles.emptyText}>No transactions found.</Text>
+      ) : (
+        <SwipeListView
+          data={transactions}
+          keyExtractor={(item) => item._id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={fetchTransactions} />
+          }
+          renderItem={({ item }) => (
+            <View style={styles.transactionCard}>
+              <Text>Date: {new Date(item.date).toLocaleDateString()}</Text>
+              <Text>Amount: ₹{item.amount}</Text>
+              <Text style={{ color: getStatusColor(item.status) }}>
+                Status: {item.status}
+              </Text>
+            </View>
+          )}
+          renderHiddenItem={({ item }) => (
+            <View style={styles.rowBack}>
+              <TouchableOpacity
+                onPress={() => deleteTransaction(item._id)}
+                style={styles.deleteButton}
+              >
+                <Text style={{ color: 'white' }}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          rightOpenValue={-75}
+        />
+      )}
 
-      {/* ✅ Create Transaction Button at Bottom */}
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => router.push('/(drawer)/(tabs)/createTransaction')}
@@ -110,6 +145,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 16,
+    color: 'gray',
+  },
 });
 
 export default TransactionScreen;
