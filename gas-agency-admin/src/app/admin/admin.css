@@ -1,0 +1,53 @@
+.admin-layout {
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  /* Adjust this value to match your sidebar's width */
+  background-color: #f0f0f0;
+  /* Or your sidebar background */
+  /* Add other sidebar styles here */
+}
+
+.admin-content {
+  flex-grow: 1;
+  /* Allow the content to take up remaining space */
+  padding: 1rem;
+  /* Add some default padding */
+  margin-left: 260px;
+  /* Add a margin to the left equal to the sidebar width */
+}
+
+.admin-sidebar .logo {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.admin-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar nav ul li {
+  margin-bottom: 10px;
+}
+
+.admin-sidebar nav ul li a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.admin-sidebar nav ul li a:hover {
+  background-color: #ddd;
+}
+
+.admin-content {
+  flex-grow: 1;
+  padding: 20px;
+}
