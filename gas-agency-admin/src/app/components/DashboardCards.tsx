@@ -2,10 +2,11 @@ import { ReactNode } from 'react';
 
 interface DashboardCardProps {
   title: string;
-  value: string | number;
-  icon: ReactNode;
+  value: string | number | undefined;
+  icon: React.ReactNode;
   description?: string;
 }
+
 
 export const DashboardCard = ({ title, value, icon, description }: DashboardCardProps) => {
   return (

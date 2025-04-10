@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Pencil } from 'lucide-react';
 import axios from 'axios';
 
 interface FeedbackData {
@@ -20,18 +20,18 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<FeedbackData[]>([]);
   const [error, setError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingMessage, setEditingMessage] = useState('');
 
   useEffect(() => {
     const fetchFeedback = async () => {
-      setLoading(true);
-      setError('');
       try {
-        const backendBaseURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+        setLoading(true);
+        const backendBaseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
         const response = await axios.get<FeedbackData[]>(`${backendBaseURL}api/enquiries`);
         setFeedback(response.data);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch feedback');
-        console.error('Error fetching feedback:', err);
       } finally {
         setLoading(false);
       }
@@ -40,8 +40,28 @@ const FeedbackPage = () => {
     fetchFeedback();
   }, []);
 
-  if (loading) return <div>Loading Feedback...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  const handleEditClick = (id: string, message: string) => {
+    setEditingId(id);
+    setEditingMessage(message);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+
+    try {
+      const backendBaseURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      await axios.put(`${backendBaseURL}api/enquiries/${editingId}`, {
+        message: editingMessage,
+      });
+
+      setFeedback((prev) =>
+        prev.map((item) => (item._id === editingId ? { ...item, message: editingMessage } : item))
+      );
+      setEditingId(null);
+    } catch (err) {
+      alert('Failed to update message');
+    }
+  };
 
   return (
     <div className="p-6 space-y-4">
@@ -49,33 +69,62 @@ const FeedbackPage = () => {
         <MessageCircle className="inline-block mr-2 h-6 w-6" />
         Feedback Panel
       </h1>
-      {feedback.length === 0 ? (
-        <p>No feedback available.</p>
+
+      {loading ? (
+        <p>Loading Feedback...</p>
+      ) : error ? (
+        <p className="text-red-500">Error: {error}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow-md rounded-lg">
             <thead className="bg-gray-100">
               <tr>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="py-3 px-6 text-left">ID</th>
+                <th className="py-3 px-6 text-left">Name</th>
+                <th className="py-3 px-6 text-left">Mobile</th>
+                <th className="py-3 px-6 text-left">Message</th>
+                <th className="py-3 px-6 text-left">Type</th>
+                <th className="py-3 px-6 text-left">Date</th>
+                <th className="py-3 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {feedback.map((item) => (
                 <tr key={item._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6 whitespace-nowrap">{item._id}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{item.name}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{item.mobile}</td>
-                  <td className="py-4 px-6">{item.message}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{item.type}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td className="py-4 px-6 whitespace-nowrap text-right">
-                    {/* Add action buttons */}
+                  <td className="py-4 px-6">{item._id}</td>
+                  <td className="py-4 px-6">{item.name}</td>
+                  <td className="py-4 px-6">{item.mobile}</td>
+                  <td className="py-4 px-6">
+                    {editingId === item._id ? (
+                      <input
+                        type="text"
+                        value={editingMessage}
+                        onChange={(e) => setEditingMessage(e.target.value)}
+                        className="border p-1 w-full rounded"
+                      />
+                    ) : (
+                      item.message
+                    )}
+                  </td>
+                  <td className="py-4 px-6">{item.type}</td>
+                  <td className="py-4 px-6">{new Date(item.createdAt).toLocaleDateString()}</td>
+                  <td className="py-4 px-6 text-right">
+                    {editingId === item._id ? (
+                      <button
+                        onClick={handleUpdate}
+                        className="text-green-600 hover:underline mr-2"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEditClick(item._id, item.message)}
+                        className="text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

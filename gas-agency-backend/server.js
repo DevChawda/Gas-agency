@@ -6,7 +6,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 // import transactionRoutes from "./routes/transactionRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js"; // Import admin routes
+import adminRoutes from "./routes/adminPanelRoutes.js"; // Import admin routes
 
 dotenv.config();
 const app = express();

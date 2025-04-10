@@ -1,4 +1,4 @@
-import Enquiry from '../models/enquiryModel.js';
+import Enquiry from '../models/bookingEnquiryModel.js';
 
 // @desc   Create a new enquiry
 // @route  POST /api/enquiries

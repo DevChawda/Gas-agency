@@ -16,15 +16,19 @@ import * as yup from "yup";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
 
-// ✅ Validation schema
+// ✅ Validation schema with confirm password
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
   phone: yup
     .string()
-    .matches(/^[0-9]{10}$/, "Phone must be 10 digits")
+    // .matches(/^[0-9]{10}$/, "Phone must be 10 digits")
     .required("Phone is required"),
   password: yup.string().min(6, "Minimum 6 characters").required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords do not match")
+    .required("Confirm Password is required"),
 });
 
 interface RegisterForm {
@@ -32,6 +36,7 @@ interface RegisterForm {
   email: string;
   phone: string;
   password: string;
+  confirmPassword: string;
 }
 
 const RegisterScreen = () => {
@@ -48,11 +53,13 @@ const RegisterScreen = () => {
   });
 
   const onRegister = async (data: RegisterForm) => {
+    const { confirmPassword, ...formData } = data; // exclude confirmPassword
     try {
       setLoading(true);
-      const response = await axios.post("http://192.168.1.29:5000/api/users/register", data);
+      const response = await axios.post("http://192.168.1.29:5000/api/users/register", formData);
+      console.log("response=====",response)
       Alert.alert("Success", "Registration successful. Please login.");
-      router.replace("/(auth)/login");
+      router.replace("/(auth)");
     } catch (error: any) {
       console.error("Register error:", error.response?.data || error.message);
       Alert.alert("Registration Failed", error.response?.data?.message || "Something went wrong.");
@@ -154,7 +161,37 @@ const RegisterScreen = () => {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
-      {/* Submit */}
+      {/* Confirm Password */}
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="lock-check" size={20} color="#666" style={styles.icons} />
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Confirm Password"
+              placeholderTextColor="#999"
+              secureTextEntry={!isPasswordVisible}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+              <MaterialCommunityIcons
+                name={isPasswordVisible ? "eye-off" : "eye"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+      {errors.confirmPassword && (
+        <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
+      )}
+
+      {/* Submit Button */}
       <TouchableOpacity
         style={styles.submitButton}
         onPress={handleSubmit(onRegister)}

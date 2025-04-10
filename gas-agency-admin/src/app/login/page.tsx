@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,9 +17,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/admin/login', { email, password }); // Replace with your actual API endpoint
-      const { token } = response.data;
-      localStorage.setItem('token', token); // Store the token (consider using cookies for better security)
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/api/admin/login`,
+        { email, password }
+      );
+
+      const { token, name } = res.data;
+
+      // Store token securely
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('adminName', name);
+
+      // Navigate to dashboard
       router.push('/admin/dashboard');
     } catch (error: any) {
       setError(error.response?.data?.message || 'Invalid credentials');
@@ -33,7 +42,9 @@ export default function LoginPage() {
       <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -56,14 +67,13 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            disabled={loading}
           >
-            Log In
+            {loading ? 'Logging in...' : 'Log In'}
           </button>
         </form>
       </div>
     </main>
   );
 }
-
-
