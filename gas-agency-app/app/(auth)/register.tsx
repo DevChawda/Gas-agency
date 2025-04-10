@@ -15,6 +15,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ✅ Validation schema with confirm password
 const schema = yup.object().shape({
@@ -57,9 +58,16 @@ const RegisterScreen = () => {
     try {
       setLoading(true);
       const response = await axios.post("http://192.168.1.29:5000/api/users/register", formData);
-      console.log("response=====",response)
-      Alert.alert("Success", "Registration successful. Please login.");
-      router.replace("/(auth)");
+      console.log("Register Response:", response.data); // Log the response for debugging
+
+      if (response.data?.token && response.data?.user) {
+        // Registration and login successful
+        await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
+        router.replace("/(drawer)/(tabs)/home");
+      } else {
+        Alert.alert("Registration Successful", "Please log in with your new credentials.");
+        router.replace("/(auth)"); // Navigate to the login screen
+      }
     } catch (error: any) {
       console.error("Register error:", error.response?.data || error.message);
       Alert.alert("Registration Failed", error.response?.data?.message || "Something went wrong.");

@@ -4,9 +4,9 @@ import {
   getUsers,
   editUser,
   deleteUser,
-  loginAdmin,
   getDashboardStats,
 } from "../controllers/adminUserController.js";
+import { loginAdmin } from "../controllers/adminController.js";
 
 const router = express.Router();
 

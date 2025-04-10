@@ -10,50 +10,42 @@ const registerUser = async (req, res) => {
   const { name, email, phone, password } = req.body;
 
   try {
-    // Basic input validation
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    // Check if user with the same email or phone already exists
-    const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(409).json({ message: 'User with this email or phone already exists' });
+      return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user
-    const newUser = new User({
-      name, // Assuming your User model has 'fullName'
+    const newUser = await User.create({
+      name,
       email,
-      phone, // Assuming your User model has 'mobile'
+      phone,
       password: hashedPassword,
-      role: 'user', // Default role for registered users
     });
 
-    // Save the user to the database
-    const savedUser = await newUser.save();
+    if (newUser) {
+      // Directly log in the newly registered user
+      const token = jwt.sign(
+        { id: newUser._id, role: newUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
-    // Generate a JWT token
-    const token = jwt.sign(
-      { id: savedUser._id, role: savedUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
-      token,
-      user: {
-        id: savedUser._id,
-        fullName: savedUser.fullName,
-        email: savedUser.email,
-        mobile: savedUser.mobile,
-        role: savedUser.role,
-      },
-    });
+      res.status(201).json({ // 201 Created
+        token,
+        user: {
+          id: newUser._id,
+          fullName: newUser.name, // Assuming 'name' in register becomes 'fullName'
+          email: newUser.email,
+          mobile: newUser.phone, // Assuming 'phone' in register becomes 'mobile'
+          role: newUser.role,
+        },
+        message: 'Registration successful and logged in',
+      });
+    } else {
+      res.status(400).json({ message: 'Invalid user data' });
+    }
   } catch (error) {
     console.error('User registration error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -68,6 +60,8 @@ const loginUser = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+
+    console.log('User found during login:', user); // <--- ADD THIS LOG
 
     if (user && (await bcrypt.compare(password, user.password))) {
       const token = jwt.sign(

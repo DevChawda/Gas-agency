@@ -49,15 +49,18 @@ const LoginScreen = () => {
       const response = await axios.post("http://192.168.1.29:5000/api/users/login", data);
       const user = response.data?.user;
       const role = user?.role;
+      const token = response.data?.token; // Get the token from the response
 
       console.log("🧑 Logged in as:", role); // ✅ Proper logging
+      console.log("🔑 Login Token:", token); // Log the token
 
       if (role === "admin") {
         // Redirect to admin panel
         Linking.openURL("http://192.168.1.29:3000");
       } else {
-        // Save user and go to app
+        // Save user and token and go to app
         await AsyncStorage.setItem("user", JSON.stringify(user));
+        await AsyncStorage.setItem("authToken", token || ""); // Save the token
         router.replace("/(drawer)/(tabs)/home");
       }
     } catch (error: any) {
