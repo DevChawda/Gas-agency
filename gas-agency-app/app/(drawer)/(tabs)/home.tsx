@@ -25,7 +25,8 @@ const HomeScreen = () => {
         const userData = await AsyncStorage.getItem("user");
         if (userData) {
           const user = JSON.parse(userData);
-          setName(user.fullName);
+          console.log("👤 Loaded user from AsyncStorage:", user);
+          setName(user.fullName || user.name || "Guest");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -33,10 +34,9 @@ const HomeScreen = () => {
         setLoading(false);
       }
     };
-
+  
     fetchUserData();
   }, []);
-
   // ✅ Show loading screen while fetching data
   if (loading) {
     return (
@@ -57,7 +57,7 @@ const HomeScreen = () => {
           <Text style={styles.walletAmount}>₹ 0.00</Text>
           <TouchableOpacity 
             style={styles.walletButton} 
-            onPress={() => router.push(routes.createTransaction)}>
+            onPress={() => router.push('/(drawer)/(tabs)/createTransaction')}>
             <Text style={styles.walletButtonText}>Add Money</Text>
           </TouchableOpacity>
         </View>

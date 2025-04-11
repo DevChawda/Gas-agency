@@ -9,7 +9,6 @@ import {
   ScrollView,
 } from "react-native";
 import axios from "axios";
-import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -45,24 +44,30 @@ const LoginScreen = () => {
   const onLogin = async (data: LoginForm) => {
     try {
       setLoading(true);
-
-      const response = await axios.post("http://192.168.1.29:5000/api/users/login", data);
+  
+      const response = await axios.post("http://192.168.1.59:5000/api/users/login", data);
       const user = response.data?.user;
-      const role = user?.role;
-      const token = response.data?.token; // Get the token from the response
-
-      console.log("🧑 Logged in as:", role); // ✅ Proper logging
-      console.log("🔑 Login Token:", token); // Log the token
-
-      if (role === "admin") {
-        // Redirect to admin panel
-        Linking.openURL("http://192.168.1.29:3000");
-      } else {
-        // Save user and token and go to app
-        await AsyncStorage.setItem("user", JSON.stringify(user));
-        await AsyncStorage.setItem("authToken", token || ""); // Save the token
-        router.replace("/(drawer)/(tabs)/home");
+      const token = response.data?.token;
+  
+      if (!user || !token) {
+        throw new Error("Invalid login response from server.");
       }
+  
+      // 🔁 Map backend fields to frontend expectations
+      const mappedUser = {
+        fullName: user.name,
+        email: user.email,
+        mobile: user.phone,
+      };
+  
+      // ✅ Save mapped user and token
+      await AsyncStorage.setItem("user", JSON.stringify(mappedUser));
+      await AsyncStorage.setItem("authToken", token);
+  
+      console.log("🔐 Saved mapped user to AsyncStorage:", mappedUser);
+  
+      // Navigate to app home
+      router.replace("/(drawer)/(tabs)/home");
     } catch (error: any) {
       console.error("Login error:", error.response?.data || error.message);
       Alert.alert("Login Failed", error.response?.data?.message || "Something went wrong.");
@@ -70,10 +75,10 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <ScrollView style={styles.formContainer}>
-      {/* Email */}
+      {/* Email Input */}
       <Controller
         control={control}
         name="email"
@@ -95,7 +100,7 @@ const LoginScreen = () => {
       />
       {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
 
-      {/* Password */}
+      {/* Password Input */}
       <Controller
         control={control}
         name="password"
@@ -123,7 +128,7 @@ const LoginScreen = () => {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
-      {/* Submit */}
+      {/* Submit Button */}
       <TouchableOpacity
         style={styles.submitButton}
         onPress={handleSubmit(onLogin)}
