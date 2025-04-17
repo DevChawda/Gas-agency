@@ -57,7 +57,7 @@ const RegisterScreen = () => {
     const { confirmPassword, ...formData } = data; // exclude confirmPassword
     try {
       setLoading(true);
-      const response = await axios.post("http://192.168.1.59:5000/api/users/register", formData);
+      const response = await axios.post("http://192.168.1.79:5000/api/users/register", formData);
       console.log("Register Response:", response.data); // Log the response for debugging
 
       if (response.data?.token && response.data?.user) {

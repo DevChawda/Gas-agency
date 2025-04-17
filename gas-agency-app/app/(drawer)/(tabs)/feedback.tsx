@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import axios from 'axios';
 
 const FeedbackScreen = () => {
   const [feedback, setFeedback] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!feedback.trim()) {
       Alert.alert('Error', 'Please enter your feedback before submitting.');
       return;
     }
 
-    // Handle submission logic here (e.g., send to API)
-    Alert.alert('Thank You!', 'Your feedback has been submitted.');
-    setFeedback('');
+    try {
+      await axios.post('http://192.168.1.79:5000/api/feedback', {
+        message: feedback,
+      });
+      Alert.alert('Thank You!', 'Your feedback has been submitted.');
+      setFeedback('');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit feedback.');
+      console.error(error);
+    }
   };
+  console.log("data", handleSubmit)
 
   return (
     <View style={styles.container}>

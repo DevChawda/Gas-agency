@@ -1,19 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package } from 'lucide-react';
 import axios from 'axios';
+import { Package } from 'lucide-react';
 
 interface OrderData {
   _id: string;
-  name: string;
-  amount: number;
-  date: string;
+  orderType: 'LPG' | 'Lubes';
+  category: string;
+  product: string;
+  vehicleNumber?: string;
+  serviceDate: string;
+  serviceTime: string;
+  bookingDate: string;
   status: string;
-  // Add other properties based on your transactionModel
 }
 
-const OrdersPage = () => {
+const AdminOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [error, setError] = useState('');
@@ -23,8 +26,7 @@ const OrdersPage = () => {
       setLoading(true);
       setError('');
       try {
-        const backendBaseURL = process.env.NEXT_PUBLIC_BACKEND_URL;
-        const response = await axios.get<OrderData[]>(`${backendBaseURL}api/transactions`);
+        const response = await axios.get<OrderData[]>('http://192.168.1.79:5000/api/orders/admin/orders');
         setOrders(response.data);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch orders');
@@ -54,23 +56,36 @@ const OrdersPage = () => {
             <thead className="bg-gray-100">
               <tr>
                 <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle No.</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Date</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Date</th>
+                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Time</th>
                 <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {orders.map((order, index) => (
                 <tr key={order._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6 whitespace-nowrap">{order._id}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.name}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">${order.amount}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{new Date(order.date).toLocaleDateString()}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{index + 1}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.orderType}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.category}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.product}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.vehicleNumber || '-'}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{new Date(order.bookingDate).toLocaleDateString()}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.serviceDate}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{order.serviceTime}</td>
                   <td className="py-4 px-6 whitespace-nowrap">{order.status}</td>
                   <td className="py-4 px-6 whitespace-nowrap text-right">
-                    {/* Add action buttons */}
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                      View
+                    </button>
+                    <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">
+                      Update Status
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -82,4 +97,4 @@ const OrdersPage = () => {
   );
 };
 
-export default OrdersPage;
+export default AdminOrdersPage;

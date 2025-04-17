@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       try {
         const [usersRes, feedbackRes] = await Promise.all([
           axiosInstance.get<UserData[]>('/api/admin/users'),
-          axiosInstance.get<FeedbackData[]>('/api/enquiries'),
+          axiosInstance.get<FeedbackData[]>('/api/feedback'),
         ]);
 
         setDashboardData({
@@ -62,10 +62,10 @@ export default function AdminDashboard() {
         <DashboardCard title="Total Gas Cylinders" value={dashboardData.totalGasCylinders} icon={<Flame className="h-5 w-5" />} description="Total cylinders in inventory" />
       </div>
 
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <h2 className="text-xl font-semibold mb-2">Recent Activity</h2>
         <p>Fetching recent activity from backend...</p>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons"; // Import icons from expo-vector-icons
 
+
 const TabsRoot = () => {
   return (
     <Tabs
@@ -9,7 +10,7 @@ const TabsRoot = () => {
       }}
     >
       <Tabs.Screen name="index" options={{ href: null }} />
-      <Tabs.Screen name="cerateTransaction" options={{ href: null }} />
+      {/* <Tabs.Screen name="cerateTransaction" options={{ href: null }} /> */}
       <Tabs.Screen
         name="home"
         options={{
@@ -34,14 +35,14 @@ const TabsRoot = () => {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="transaction"
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="contact"
         options={{
@@ -73,7 +74,8 @@ const TabsRoot = () => {
       <Tabs.Screen name="my-hp" options={{ href: null }} />
       <Tabs.Screen name="my-vehicle" options={{ href: null }} />
       <Tabs.Screen name="redeemCoins" options={{ href: null }} />
-      <Tabs.Screen name="createTransaction" options={{ href: null }} />
+      {/* <Tabs.Screen name="createTransaction" options={{ href: null }} /> */}
+      <Tabs.Screen name="BookingConfirmation" options={{ href: null }} />
     </Tabs>
     
   );

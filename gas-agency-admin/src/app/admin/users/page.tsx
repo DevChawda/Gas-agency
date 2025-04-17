@@ -19,12 +19,12 @@ const UsersPage = () => {
   const [editUser, setEditUser] = useState<UserData | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const backendBaseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const backendBaseURL = process.env.NEXT_PUBLIC_API_BASE_URL ;
         const response = await axios.get<UserData[]>(`${backendBaseURL}api/admin/users`);
         setUsers(response.data);
       } catch (err: any) {
@@ -34,7 +34,7 @@ const UsersPage = () => {
       }
     };
     fetchUsers();
-  }, []);
+  }, [backendBaseURL]);
 
   const handleEditClick = (user: UserData) => {
     setEditUser(user);
@@ -46,14 +46,15 @@ const UsersPage = () => {
     if (!editUser) return;
 
     try {
-      const backendBaseURL = process.env.NEXT_PUBLIC_BACKEND_URL;
       await axios.put(`${backendBaseURL}api/admin/users/${editUser._id}`, {
         name: editName,
         email: editEmail,
       });
 
       setUsers((prev) =>
-        prev.map((u) => (u._id === editUser._id ? { ...u, name: editName, email: editEmail } : u))
+        prev.map((u) =>
+          u._id === editUser._id ? { ...u, name: editName, email: editEmail } : u
+        )
       );
 
       setEditUser(null);
@@ -82,13 +83,13 @@ const UsersPage = () => {
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Registration Date</th>
-                <th className="py-3 px-6 text-right">Actions</th>
+                <th className="py-3 px-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6">{user._id}</td>
+                  <td className="py-4 px-6">{index + 1}</td>
                   <td className="py-4 px-6">{user.name}</td>
                   <td className="py-4 px-6">{user.email}</td>
                   <td className="py-4 px-6">{new Date(user.createdAt).toLocaleDateString()}</td>
