@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Pencil } from 'lucide-react-native';
 
 const Profile = () => {
-  const [user, setUser] = useState<{ fullName: string; mobile: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; phone: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -24,8 +24,8 @@ const Profile = () => {
         console.log("✅ Parsed user:", parsed);
   
         // Check if the required fields exist
-        const { fullName, email, mobile } = parsed;
-        if (fullName && email && mobile) {
+        const { name, email, phone } = parsed;
+        if (name && email && phone) {
           setUser(parsed);
         } else {
           console.warn("⚠️ Missing fields in stored user:", parsed);
@@ -70,11 +70,11 @@ const Profile = () => {
       <View style={styles.profileDetails}>
         <View style={styles.detailRow}>
           <Text style={styles.label}>Name:</Text>
-          <Text style={styles.value}>{user?.fullName || 'N/A'}</Text>
+          <Text style={styles.value}>{user?.name || 'N/A'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.label}>Phone Number:</Text>
-          <Text style={styles.value}>{user?.mobile || 'N/A'}</Text>
+          <Text style={styles.value}>{user?.phone || 'N/A'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.label}>Email Address:</Text>

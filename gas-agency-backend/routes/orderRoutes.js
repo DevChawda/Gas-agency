@@ -8,6 +8,7 @@ import {
   getLubesCategories,
   getLubesProducts,
 } from '../controllers/orderController.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post('/bookings/lpg', createLpgBooking);
 router.post('/bookings/lubes', createLubeBooking);
 
 // Admin route to get all orders
-router.get('/admin/orders', getAllOrders);
+router.get('/admin/orders', getAllOrders, protect, adminOnly);
 
 // Routes to fetch categories and products (likely temporary static data)
 router.get('/categories/lpg', getLpgCategories);

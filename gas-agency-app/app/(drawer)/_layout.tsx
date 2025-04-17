@@ -43,16 +43,24 @@ export default function Layout() {
         text: "Logout",
         onPress: async () => {
           try {
-            await AsyncStorage.removeItem("token");
+            // ✅ Remove token and user data from AsyncStorage
+            await AsyncStorage.removeItem("authToken");
             await AsyncStorage.removeItem("user");
-            router.replace('/(auth)');
-          } catch (error) {
-            console.error("Error during logout:", error);
+  
+            console.log("🔐 Logout successful: Token and user cleared");
+  
+            // ✅ Navigate back to the login screen
+            router.replace("/(auth)");
+          } catch (error: any) {
+            console.error("❌ Error during logout:", error.message || error);
+            Alert.alert("Logout Failed", "Something went wrong. Please try again.");
           }
         },
       },
     ]);
   };
+  
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -44,30 +44,32 @@ const LoginScreen = () => {
   const onLogin = async (data: LoginForm) => {
     try {
       setLoading(true);
-  
+
       const response = await axios.post("http://192.168.1.79:5000/api/users/login", data);
       const user = response.data?.user;
       const token = response.data?.token;
-  
+      console.log("token", token);
+
       if (!user || !token) {
         throw new Error("Invalid login response from server.");
       }
-  
-      // 🔁 Map backend fields to frontend expectations
-      const mappedUser = {
-        fullName: user.name,
-        email: user.email,
-        mobile: user.phone,
-      };
-  
-      // ✅ Save mapped user and token
-      await AsyncStorage.setItem("user", JSON.stringify(mappedUser));
+
+      // ✅ Save complete user and token
+      await AsyncStorage.setItem("user", JSON.stringify(user));
       await AsyncStorage.setItem("authToken", token);
-  
-      console.log("🔐 Saved mapped user to AsyncStorage:", mappedUser);
-  
-      // Navigate to app home
-      router.replace("/(drawer)/(tabs)/home");
+
+      console.log("🔐 Logged in user:", user);
+
+      // ✅ Navigate based on role (optional)
+      if (user.role === "admin") {
+        // TODO: Redirect to admin panel (Next.js or Web)
+        Alert.alert("Redirect", "Admin login detected.");
+        // Optionally open a URL with Linking.openURL(...)
+      } else {
+        // Regular user: Navigate to app home
+        router.replace("/(drawer)/(tabs)/home");
+      }
+
     } catch (error: any) {
       console.error("Login error:", error.response?.data || error.message);
       Alert.alert("Login Failed", error.response?.data?.message || "Something went wrong.");
@@ -75,7 +77,7 @@ const LoginScreen = () => {
       setLoading(false);
     }
   };
-  
+
   return (
     <ScrollView style={styles.formContainer}>
       {/* Email Input */}

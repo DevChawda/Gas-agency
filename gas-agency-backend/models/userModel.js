@@ -25,12 +25,18 @@
 
 // const User = mongoose.model("User", userSchema);
 // export default User;
+import mongoose from 'mongoose';
+
+function generateUserId() {
+  return 'user-' + Math.random().toString(36).substring(2, 15); // Simple unique userId
+}
+
 const userSchema = new mongoose.Schema({
   userId: {
     type: String,
     required: true,
-    unique: true,  // Ensures the userId is unique
-    default: () => generateUserId()  // Example of generating userId
+    unique: true,
+    default: () => generateUserId(),
   },
   email: {
     type: String,
@@ -41,18 +47,22 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  fullName: {
+  name: {
     type: String,
     required: true,
   },
-  mobile: {
+  phone: {
     type: String,
     required: true,
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
 });
 
-function generateUserId() {
-  return 'user-' + Math.random().toString(36).substring(2, 15); // Example userId generation logic
-}
+const User = mongoose.model('User', userSchema);
 
-module.exports = mongoose.model('User', userSchema);
+export default User; // ✅ Use default export for ESM compatibility
+

@@ -10,19 +10,21 @@ connectDB();
 
 const createAdmin = async () => {
   try {
-    const existingAdmin = await Admin.findOne({ email: "admin@example.com" });
+    const existingAdmin = await Admin.findOne({ email: "admin@gmail.com" });
     if (existingAdmin) {
       console.log("✅ Admin already exists.");
       process.exit();
     }
 
-    const hashedPassword = await bcrypt.hash("yourAdminPassword", 10);
+    const hashedPassword = await bcrypt.hash('admin@123', 10);
+
 
     const admin = new Admin({
       name: "Admin",
-      email: "admin@example.com",
+      email: "admin@gmail.com",
       password: hashedPassword,
     });
+    console.log("admmin::::::::::::", admin)
 
     await admin.save();
     console.log("✅ Admin user created successfully!");

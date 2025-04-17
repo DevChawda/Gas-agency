@@ -63,7 +63,7 @@ const RegisterScreen = () => {
       if (response.data?.token && response.data?.user) {
         // Registration and login successful
         await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
-        router.replace("/(drawer)/(tabs)/home");
+        router.replace("/(auth)");
       } else {
         Alert.alert("Registration Successful", "Please log in with your new credentials.");
         router.replace("/(auth)"); // Navigate to the login screen

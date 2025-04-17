@@ -18,9 +18,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState({
-    fullName: "",
+    name: "",
     email: "",
-    mobile: "",
+    phone: "",
     profileImage: null,
   });
 
@@ -105,8 +105,8 @@ const EditProfileScreen: React.FC = () => {
           <Text style={styles.label}>Full Name</Text>
           <TextInput
             style={styles.input}
-            value={user.fullName}
-            onChangeText={(text) => setUser({ ...user, fullName: text })}
+            value={user.name}
+            onChangeText={(text) => setUser({ ...user, name: text })}
             placeholder="Enter your full name"
           />
         </View>
@@ -129,8 +129,8 @@ const EditProfileScreen: React.FC = () => {
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
             style={styles.input}
-            value={user.mobile}
-            onChangeText={(text) => setUser({ ...user, mobile: text })}
+            value={user.phone}
+            onChangeText={(text) => setUser({ ...user, phone: text })}
             placeholder="Enter your phone number"
             keyboardType="phone-pad"
           />
