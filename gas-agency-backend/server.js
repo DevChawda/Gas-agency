@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminPanelRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import path from 'path';
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/orders", orderRoutes);
+
+app.use('/public', express.static(path.join(path.resolve(), 'public')));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

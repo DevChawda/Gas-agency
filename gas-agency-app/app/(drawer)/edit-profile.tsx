@@ -14,10 +14,12 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState({
+    userId: "",
     name: "",
     email: "",
     phone: "",
@@ -26,7 +28,6 @@ const EditProfileScreen: React.FC = () => {
 
   const [image, setImage] = useState<string | null>(null);
 
-  // Load user data from AsyncStorage
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -45,52 +46,103 @@ const EditProfileScreen: React.FC = () => {
     loadUserData();
   }, []);
 
-  // Pick new profile image
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      const selectedImage = result.assets[0].uri;
-      setImage(selectedImage);
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedImage = result.assets[0].uri;
+        setImage(selectedImage);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
     }
   };
 
-  // Save updated user data
   const handleSaveChanges = async () => {
     try {
+      const storedUser = await AsyncStorage.getItem("user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const userId = parsedUser?.userId;
+  
+      if (!userId) {
+        console.warn("User ID missing in AsyncStorage!");
+        return;
+      }
+  
       const updatedUser = {
-        ...user,
-        profileImage: image,
+        userId,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        profileImage: image || "", // Ensure profileImage is always included
       };
+  
+      const formData = new FormData();
+      formData.append("userId", updatedUser.userId);
+      formData.append("name", updatedUser.name);
+      formData.append("email", updatedUser.email);
+      formData.append("phone", updatedUser.phone);
+  
+      if (image) {
+        const localUri = image;
+        const filename = localUri.split("/").pop();
+        const match = /\.(\w+)$/.exec(filename ?? "");
+        const type = match ? `image/${match[1]}` : `image`;
+  
+        formData.append("profileImage", {
+          uri: localUri,
+          name: filename,
+          type,
+        } as any);
+      }
+  
+      const response = await axios.patch(
+        "http://192.168.1.79:5000/api/users/update-profile",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      console.log("✅ Server response:", response.data);
+  
+      // Save the fully updated user to AsyncStorage
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-      Alert.alert("Profile Updated", "Your profile has been successfully updated!");
-      router.back(); // Go back to Profile screen
-    } catch (error) {
-      console.error("Failed to save user data:", error);
-      Alert.alert("Error", "Something went wrong while saving your profile.");
+      console.log("💾 Updated user stored:", updatedUser);
+  
+      Alert.alert("Success", "Profile updated successfully!");
+      router.back();
+    } catch (error: any) {
+      console.error("❌ Error saving user data:", error.message);
+      Alert.alert("Error", "Failed to update profile.");
     }
   };
+  
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollView} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.header}>Edit Profile</Text>
 
         {/* Profile Image */}
         <View style={styles.imageContainer}>
           <Image
             source={
-              image
-                ? { uri: image }
-                : require("../../assets/images/User.jpg")
+              image ? { uri: image } : require("../../assets/images/User.jpg")
             }
             resizeMode="cover"
             style={styles.profileImage}
@@ -136,12 +188,14 @@ const EditProfileScreen: React.FC = () => {
           />
         </View>
 
-        {/* Buttons */}
         <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
           <Text style={styles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={() => router.back()}
+        >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -199,27 +253,29 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   input: {
-    height: 45,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
   button: {
-    backgroundColor: "#E53935",
-    paddingVertical: 12,
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 8,
-    alignItems: "center",
     width: "100%",
-    marginTop: 10,
+    marginTop: 20,
   },
   cancelButton: {
-    backgroundColor: "#6c757d",
+    backgroundColor: "#ccc",
+    marginTop: 10,
   },
   buttonText: {
     color: "#fff",
+    textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
   },

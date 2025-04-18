@@ -15,7 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { styles } from "./styles";
+import { styles } from "./styles"; // 🔁 Import your styles
 
 // ✅ Validation schema
 const schema = yup.object().shape({
@@ -23,6 +23,7 @@ const schema = yup.object().shape({
   password: yup.string().required("Password is required"),
 });
 
+// ✅ Interface for form
 interface LoginForm {
   email: string;
   password: string;
@@ -46,30 +47,36 @@ const LoginScreen = () => {
       setLoading(true);
 
       const response = await axios.post("http://192.168.1.79:5000/api/users/login", data);
-      const user = response.data?.user;
-      const token = response.data?.token;
-      console.log("token", token);
+      const { user, token } = response.data;
 
       if (!user || !token) {
         throw new Error("Invalid login response from server.");
       }
 
-      // ✅ Save complete user and token
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+      // ✅ Save user info
+      await AsyncStorage.setItem(
+        "user",
+        JSON.stringify({
+          userId: user.userId,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          profileImage: user.profileImage || "",
+        })
+      );
+
+      // ✅ Save auth token
       await AsyncStorage.setItem("authToken", token);
 
-      console.log("🔐 Logged in user:", user);
+      console.log("🔐 Logged in:", user);
 
-      // ✅ Navigate based on role (optional)
+      // ✅ Redirect based on role
       if (user.role === "admin") {
-        // TODO: Redirect to admin panel (Next.js or Web)
         Alert.alert("Redirect", "Admin login detected.");
-        // Optionally open a URL with Linking.openURL(...)
+        // Linking.openURL("https://your-admin-panel-url.com");
       } else {
-        // Regular user: Navigate to app home
         router.replace("/(drawer)/(tabs)/home");
       }
-
     } catch (error: any) {
       console.error("Login error:", error.response?.data || error.message);
       Alert.alert("Login Failed", error.response?.data?.message || "Something went wrong.");

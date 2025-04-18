@@ -1,47 +1,73 @@
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import React, { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Pencil } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Profile = () => {
-  const [user, setUser] = useState<{ name: string; phone: string; email: string } | null>(null);
+  const [user, setUser] = useState<{
+    name: string;
+    phone: string;
+    email: string;
+    profileImage: string | null;
+  } | null>(null);
+
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('user');
-        console.log("📦 Raw stored user:", stored);
-  
-        if (!stored) {
-          Alert.alert("⚠️ No user found", "Please log in again.");
-          return;
-        }
-  
-        const parsed = JSON.parse(stored);
-        console.log("✅ Parsed user:", parsed);
-  
-        // Check if the required fields exist
-        const { name, email, phone } = parsed;
-        if (name && email && phone) {
-          setUser(parsed);
-        } else {
-          console.warn("⚠️ Missing fields in stored user:", parsed);
-          Alert.alert("⚠️ Invalid user data", "Some required fields are missing. Try logging in again.");
-        }
-  
-      } catch (error) {
-        console.error("❌ Error loading user:", error);
-        Alert.alert("❌ Error", "Something went wrong while loading your profile.");
-      } finally {
-        setLoading(false);
+  const fetchUserData = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('user');
+      if (!stored) {
+        Alert.alert('⚠️ No user found', 'Please log in again.');
+        return;
       }
-    };
-  
-    fetchUserData();
-  }, []);
+
+      const parsed = JSON.parse(stored);
+      const { name, email, phone, profileImage } = parsed;
+
+      if (name && email && phone) {
+        setUser({
+          name,
+          email,
+          phone,
+          profileImage: profileImage || null,
+        });
+      } else {
+        Alert.alert('⚠️ Invalid user data', 'Some required fields are missing.');
+      }
+    } catch (error) {
+      console.error('❌ Error loading user:', error);
+      Alert.alert('Error', 'Failed to load profile.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⏳ Refresh on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchUserData();
+    }, [])
+  );
+
+  // Refresh control function
+  const onRefresh = async () => {
+    setLoading(true);
+    await fetchUserData();
+  };
 
   if (loading) {
     return (
@@ -52,10 +78,19 @@ const Profile = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.profileHeader}>
         <Image
-          source={require('../../assets/images/User.jpg')}
+          source={
+            user?.profileImage
+              ? { uri: user.profileImage }
+              : require('../../assets/images/User.jpg') // Fallback image if URL is not provided
+          }
           style={styles.profileImage}
         />
         <TouchableOpacity
@@ -107,6 +142,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
+    backgroundColor: '#ccc',
   },
   editIconWrapper: {
     flexDirection: 'row',

@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  profileImage: {
+    type: String, // This can be a base64 string or a URL
+    default: "",
+  },
 });
 
 const User = mongoose.model('User', userSchema);
