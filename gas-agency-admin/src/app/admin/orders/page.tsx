@@ -16,17 +16,21 @@ interface OrderData {
   status: string;
 }
 
+const baseURL = 'http://192.168.1.115:5000/';
+
 const AdminOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [error, setError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingStatus, setEditingStatus] = useState<string>('');
 
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       setError('');
       try {
-        const response = await axios.get<OrderData[]>('http://192.168.1.79:5000/api/orders/admin/orders');
+        const response = await axios.get<OrderData[]>(`${baseURL}api/orders/admin/orders`);
         setOrders(response.data);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch orders');
@@ -38,6 +42,26 @@ const AdminOrdersPage = () => {
 
     fetchOrders();
   }, []);
+
+  const handleUpdate = async () => {
+    if (!editingId || !editingStatus.trim()) return;
+
+    try {
+      await axios.put(`${baseURL}api/orders/${editingId}`, {
+        status: editingStatus,
+      });
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === editingId ? { ...order, status: editingStatus } : order
+        )
+      );
+      setEditingId(null);
+      setEditingStatus('');
+    } catch (err) {
+      alert('Failed to update status');
+    }
+  };
 
   if (loading) return <div>Loading Orders...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
@@ -55,37 +79,59 @@ const AdminOrdersPage = () => {
           <table className="min-w-full bg-white shadow-md rounded-lg">
             <thead className="bg-gray-100">
               <tr>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle No.</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Date</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Date</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Time</th>
-                <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="py-3 px-6">#</th>
+                <th className="py-3 px-6">Type</th>
+                <th className="py-3 px-6">Category</th>
+                <th className="py-3 px-6">Product</th>
+                <th className="py-3 px-6">Vehicle No.</th>
+                <th className="py-3 px-6">Booking Date</th>
+                <th className="py-3 px-6">Service Date</th>
+                <th className="py-3 px-6">Service Time</th>
+                <th className="py-3 px-6">Status</th>
+                <th className="py-3 px-6 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order, index) => (
                 <tr key={order._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6 whitespace-nowrap">{index + 1}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.orderType}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.category}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.product}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.vehicleNumber || '-'}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{new Date(order.bookingDate).toLocaleDateString()}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.serviceDate}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.serviceTime}</td>
-                  <td className="py-4 px-6 whitespace-nowrap">{order.status}</td>
-                  <td className="py-4 px-6 whitespace-nowrap text-right">
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                      View
-                    </button>
-                    <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">
-                      Update Status
-                    </button>
+                  <td className="py-4 px-6">{index + 1}</td>
+                  <td className="py-4 px-6">{order.orderType}</td>
+                  <td className="py-4 px-6">{order.category}</td>
+                  <td className="py-4 px-6">{order.product}</td>
+                  <td className="py-4 px-6">{order.vehicleNumber || '-'}</td>
+                  <td className="py-4 px-6">{new Date(order.bookingDate).toLocaleDateString()}</td>
+                  <td className="py-4 px-6">{order.serviceDate}</td>
+                  <td className="py-4 px-6">{order.serviceTime}</td>
+                  <td className="py-4 px-6">
+                    {editingId === order._id ? (
+                      <input
+                        className="border p-1 rounded"
+                        value={editingStatus}
+                        onChange={(e) => setEditingStatus(e.target.value)}
+                      />
+                    ) : (
+                      order.status
+                    )}
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    {editingId === order._id ? (
+                      <button
+                        onClick={handleUpdate}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingId(order._id);
+                          setEditingStatus(order.status);
+                        }}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
+                      >
+                        Update Status
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

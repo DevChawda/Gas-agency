@@ -94,3 +94,7 @@ export default function LoginPage() {
     </main>
   );
 }
+
+
+//admin@gmail.com
+//Admin@123

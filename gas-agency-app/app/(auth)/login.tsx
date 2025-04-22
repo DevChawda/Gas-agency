@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -46,14 +46,14 @@ const LoginScreen = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post("http://192.168.1.79:5000/api/users/login", data);
+      const response = await axios.post("http://192.168.1.115:5000/api/users/login", data);
       const { user, token } = response.data;
 
       if (!user || !token) {
         throw new Error("Invalid login response from server.");
       }
 
-      // ✅ Save user info
+      // Save user info
       await AsyncStorage.setItem(
         "user",
         JSON.stringify({
@@ -65,15 +65,12 @@ const LoginScreen = () => {
         })
       );
 
-      // ✅ Save auth token
+      // Save auth token
       await AsyncStorage.setItem("authToken", token);
 
-      console.log("🔐 Logged in:", user);
-
-      // ✅ Redirect based on role
+      // Redirect based on role (if applicable)
       if (user.role === "admin") {
         Alert.alert("Redirect", "Admin login detected.");
-        // Linking.openURL("https://your-admin-panel-url.com");
       } else {
         router.replace("/(drawer)/(tabs)/home");
       }
@@ -148,6 +145,9 @@ const LoginScreen = () => {
         ) : (
           <Text style={styles.submitButtonText}>Login</Text>
         )}
+      </TouchableOpacity>
+      <TouchableOpacity>
+        <Link style={styles.forgotPassword} href={"/(auth)/forgot"}>Forgot Password</Link>
       </TouchableOpacity>
     </ScrollView>
   );
