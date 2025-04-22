@@ -3,43 +3,41 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { Eye, EyeOff, Link } from 'lucide-react';
-import Cookies from 'js-cookie';
-import Image from 'next/image'
+import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
 
-export default function LoginPage() {
+export default function AdminRegisterPage() {
   const router = useRouter();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/admin/login`,
-        { email, password }
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/admin/register`,
+        { name, email, password }
       );
 
-      const { token, name } = res.data;
+      console.log('Registration success:', res.data);
 
-      // Store the token and admin name in localStorage
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminName', name);
-      Cookies.set('adminToken', token, { expires: 7 }); // expires in 7 days (optional)
-      Cookies.set('adminName', name, { expires: 7 });
-
-      console.log('Admin Token:', token); // ✅ Debug token in console
-
-      // Navigate to admin dashboard
-      router.push('/admin/dashboard');
+      router.push('/admin/login');
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Invalid credentials');
+      setError(error.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -58,14 +56,23 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-3xl font-bold mb-6 text-center" style={{ color: '#eb4343' }}>Mahakal Gas Agency</h1>
-          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#eb4343' }}>Admin Login</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#eb4343' }}>Admin Sign in</h2>
         </div>
 
         {error && (
           <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Full Name"
+            className="w-full p-3 border border-gray-300 rounded-lg"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+
           <input
             type="email"
             placeholder="Email"
@@ -87,7 +94,26 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Confirm Password"
+              className="w-full p-3 border border-gray-300 rounded-lg pr-10"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
               tabIndex={-1}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -99,14 +125,13 @@ export default function LoginPage() {
             className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-700 transition"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? 'Registering...' : 'Register'}
           </button>
+          <a href="/login" className="block text-center text-red-600 hover:underline mt-4">
+            you have an admin account? Login here
+          </a>
         </form>
       </div>
     </main>
   );
 }
-
-
-//admin@gmail.com
-//Admin@123

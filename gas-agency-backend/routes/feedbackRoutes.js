@@ -1,13 +1,14 @@
 import express from 'express';
-import { submitFeedback, getAllFeedback, updateFeedback } from '../controllers/feedbackController.js';
+import { submitFeedback, getAllFeedback, updateFeedback, deleteFeedback } from '../controllers/feedbackController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/feedback', submitFeedback, protect, adminOnly);
+router.post('/', submitFeedback, protect, adminOnly);
 router.get('/', getAllFeedback, protect, adminOnly); 
-router.get('/admin/feedbacks', getAllFeedback, protect, adminOnly);
-router.put('/admin/feedbacks/:id', updateFeedback, protect, adminOnly); 
+router.get('/', getAllFeedback, protect, adminOnly);
+router.put('/:id', updateFeedback, protect, adminOnly); 
+router.delete('/:id', deleteFeedback);
 
 
 export default router;

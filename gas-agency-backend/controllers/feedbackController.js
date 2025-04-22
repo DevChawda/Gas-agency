@@ -25,24 +25,37 @@ export const getAllFeedback = async (req, res) => {
   }
 };
 
-// Update feedback by ID (for admin)
+// feedbackController.js
 export const updateFeedback = async (req, res) => {
   const { id } = req.params;
-  const { message } = req.body;
+  const { message, submittedAt } = req.body;
 
   try {
-    const updatedFeedback = await Feedback.findByIdAndUpdate(
-      id,
-      { message },
-      { new: true, runValidators: true } // 'new: true' returns the updated document
-    );
-
-    if (!updatedFeedback) {
-      return res.status(404).json({ error: 'Feedback not found' });
+    const feedback = await Feedback.findById(id);
+    if (!feedback) {
+      return res.status(404).json({ message: 'Feedback not found' });
     }
 
-    res.status(200).json(updatedFeedback);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error while updating feedback' });
+    feedback.message = message || feedback.message;
+    feedback.submittedAt = submittedAt || feedback.submittedAt;
+    await feedback.save();
+
+    res.status(200).json({ message: 'Feedback updated successfully', feedback });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({ message: 'Failed to update feedback' });
+  }
+};
+
+
+export const deleteFeedback = async (req, res) => {
+  try {
+    const feedback = await Feedback.findByIdAndDelete(req.params.id);
+    if (!feedback) {
+      return res.status(404).json({ message: 'Feedback not found' });
+    }
+    res.status(200).json({ message: 'Feedback deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to delete feedback' });
   }
 };

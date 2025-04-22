@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Pencil } from 'lucide-react';
+import { User } from 'lucide-react';
 import axios from 'axios';
 
 interface UserData {
@@ -16,9 +16,8 @@ const UsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserData[]>([]);
   const [error, setError] = useState('');
-  const [editUser, setEditUser] = useState<UserData | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editEmail, setEditEmail] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
   const backendBaseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
@@ -36,32 +35,23 @@ const UsersPage = () => {
     fetchUsers();
   }, [backendBaseURL]);
 
-  const handleEditClick = (user: UserData) => {
-    setEditUser(user);
-    setEditName(user.name);
-    setEditEmail(user.email);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleUpdateUser = async () => {
-    if (!editUser) return;
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    try {
-      await axios.put(`${backendBaseURL}api/admin/users/${editUser._id}`, {
-        name: editName,
-        email: editEmail,
-      });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-      setUsers((prev) =>
-        prev.map((u) =>
-          u._id === editUser._id ? { ...u, name: editName, email: editEmail } : u
-        )
-      );
-
-      setEditUser(null);
-    } catch (err) {
-      alert('Failed to update user');
-    }
-  };
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   return (
     <div className="p-6 space-y-4">
@@ -69,6 +59,14 @@ const UsersPage = () => {
         <User className="inline-block mr-2 h-6 w-6" />
         View Users
       </h1>
+
+      <input
+        type="text"
+        placeholder="Search users..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        className="border p-2 w-full rounded mb-4"
+      />
 
       {loading ? (
         <p>Loading Users...</p>
@@ -83,25 +81,15 @@ const UsersPage = () => {
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Registration Date</th>
-                <th className="py-3 px-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
+              {currentUsers.map((user, index) => (
                 <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6">{index + 1}</td>
+                  <td className="py-4 px-6">{startIndex + index + 1}</td>
                   <td className="py-4 px-6">{user.name}</td>
                   <td className="py-4 px-6">{user.email}</td>
                   <td className="py-4 px-6">{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td className="py-4 px-6 text-right">
-                    <button
-                      onClick={() => handleEditClick(user)}
-                      className="text-blue-600 hover:underline flex items-center gap-1"
-                    >
-                      <Pencil size={16} />
-                      Edit
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -109,41 +97,25 @@ const UsersPage = () => {
         </div>
       )}
 
-      {editUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white p-6 rounded-xl shadow-md space-y-4 w-full max-w-md">
-            <h2 className="text-xl font-semibold">Edit User</h2>
-            <input
-              type="text"
-              className="border p-2 w-full rounded"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder="Name"
-            />
-            <input
-              type="email"
-              className="border p-2 w-full rounded"
-              value={editEmail}
-              onChange={(e) => setEditEmail(e.target.value)}
-              placeholder="Email"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setEditUser(null)}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdateUser}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

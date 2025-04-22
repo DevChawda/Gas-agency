@@ -103,3 +103,27 @@ export const getLubesProducts = async (req, res) => {
     res.status(500).json({ error: 'Server error while fetching Lubes products', details: error.message });
   }
 };
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, status } = req.body; // Ensure you're sending the correct data format
+    let updatedOrder;
+
+    // Check if it's an LPG order
+    if (req.body.orderType === 'LPG') {
+      updatedOrder = await LpgBooking.findByIdAndUpdate(orderId, { status }, { new: true });
+    } 
+    // Or it's a Lube order
+    else if (req.body.orderType === 'Lubes') {
+      updatedOrder = await LubeBooking.findByIdAndUpdate(orderId, { status }, { new: true });
+    }
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    console.error('Error updating order:', err);
+    res.status(500).json({ message: 'Failed to update order', error: err.message });
+  }
+};

@@ -9,6 +9,7 @@ import {
   getLubesProducts,
 } from '../controllers/orderController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import {updateOrderStatus} from '../controllers/orderController.js'
 
 const router = express.Router();
 
@@ -24,5 +25,7 @@ router.get('/categories/lpg', getLpgCategories);
 router.get('/products/lpg', getLpgProducts);
 router.get('/categories/lubes', getLubesCategories);
 router.get('/products/lubes', getLubesProducts);
+
+router.put('/:id', updateOrderStatus);
 
 export default router;
